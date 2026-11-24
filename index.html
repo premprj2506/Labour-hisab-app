@@ -20,10 +20,16 @@
       rel="stylesheet"
     />
 
-    <!-- Force Hide Netlify Injected Badge -->
+    <!-- 100% Guaranteed Removal of Netlify Injected Badge (#nl-badge-frame) -->
     <style>
+      #nl-badge-frame,
+      iframe#nl-badge-frame,
+      iframe[title="Powered by Netlify"],
+      iframe[title*="Netlify"],
+      iframe[id*="nl-badge"],
+      iframe[data-nl-ready],
+      iframe[srcdoc*="Powered by Netlify"],
       iframe[src*="netlify"],
-      iframe[id*="netlify"],
       #netlify-badge,
       [data-netlify-badge],
       netlify-drawer,
@@ -32,35 +38,66 @@
         visibility: hidden !important;
         opacity: 0 !important;
         pointer-events: none !important;
-        width: 0 !important;
-        height: 0 !important;
         position: absolute !important;
+        top: -99999px !important;
+        left: -99999px !important;
+        width: 0px !important;
+        height: 0px !important;
         clip: rect(0, 0, 0, 0) !important;
+        z-index: -999999 !important;
       }
     </style>
 
     <script>
       (function() {
-        function removeNetlifyBadge() {
-          const selectors = [
-            'iframe[src*="netlify"]',
-            'iframe[id*="netlify"]',
-            '#netlify-badge',
-            '[data-netlify-badge]',
-            'netlify-drawer',
-            'div[class*="netlify-badge"]'
-          ];
-          selectors.forEach(function(sel) {
-            document.querySelectorAll(sel).forEach(function(el) {
-              el.remove();
-            });
-          });
+        function killNetlifyBadge() {
+          // 1. Remove the exact Netlify badge iframe by ID and attributes
+          var frame = document.getElementById('nl-badge-frame') 
+                   || document.querySelector('iframe[title="Powered by Netlify"]')
+                   || document.querySelector('iframe[id*="nl-badge"]')
+                   || document.querySelector('iframe[data-nl-ready]');
+          if (frame) {
+            frame.style.setProperty('display', 'none', 'important');
+            frame.style.setProperty('visibility', 'hidden', 'important');
+            frame.style.setProperty('opacity', '0', 'important');
+            frame.style.setProperty('pointer-events', 'none', 'important');
+            try {
+              frame.remove();
+            } catch(e) {}
+          }
+
+          // 2. Remove the injected hud script
+          var hudScript = document.querySelector('script[src*="/.netlify/scripts/hud"]');
+          if (hudScript) {
+            try {
+              hudScript.remove();
+            } catch(e) {}
+          }
+
+          // 3. Send the internal hide state to Netlify HUD script
+          try {
+            window.postMessage({ nlHud: 'state', value: 'hidden' }, '*');
+          } catch(e) {}
         }
+
+        // Run immediately
+        killNetlifyBadge();
+
         if (typeof window !== 'undefined') {
-          window.addEventListener('DOMContentLoaded', removeNetlifyBadge);
-          window.addEventListener('load', removeNetlifyBadge);
-          const observer = new MutationObserver(removeNetlifyBadge);
+          window.addEventListener('DOMContentLoaded', killNetlifyBadge);
+          window.addEventListener('load', killNetlifyBadge);
+
+          // Watch DOM continuously for when Netlify injects it
+          var observer = new MutationObserver(killNetlifyBadge);
           observer.observe(document.documentElement, { childList: true, subtree: true });
+
+          // Also check every 100ms for first 3 seconds
+          var count = 0;
+          var interval = setInterval(function() {
+            killNetlifyBadge();
+            count++;
+            if (count > 30) clearInterval(interval);
+          }, 100);
         }
       })();
     </script>
