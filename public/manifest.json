@@ -1,0 +1,16 @@
+{
+  "short_name": "મજૂરી ખાતાવહી",
+  "name": "મજૂરી ખાતાવહી - Daily Labour & Wage App",
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "type": "image/svg+xml",
+      "sizes": "192x192 512x512"
+    }
+  ],
+  "start_url": "/",
+  "background_color": "#1e5139",
+  "theme_color": "#1e5139",
+  "display": "standalone",
+  "orientation": "portrait"
+}
