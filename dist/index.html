@@ -19,8 +19,37 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+Gujarati:wght@400;500;600;700;800&family=Noto+Serif+Gujarati:wght@600;700&display=swap"
       rel="stylesheet"
     />
-    <script type="module" crossorigin src="/assets/index-DeUU2iFU.js"></script>
-    <link rel="stylesheet" crossorigin href="/assets/index-C_ItQoGz.css">
+
+    <!-- Force Hide Netlify Injected Badge -->
+    <style>iframe[src*=netlify],iframe[id*=netlify],#netlify-badge,[data-netlify-badge],netlify-drawer,div[class*=netlify-badge]{visibility:hidden!important;opacity:0!important;pointer-events:none!important;clip:rect(0, 0, 0, 0)!important;width:0!important;height:0!important;display:none!important;position:absolute!important}</style>
+
+    <script>
+      (function() {
+        function removeNetlifyBadge() {
+          const selectors = [
+            'iframe[src*="netlify"]',
+            'iframe[id*="netlify"]',
+            '#netlify-badge',
+            '[data-netlify-badge]',
+            'netlify-drawer',
+            'div[class*="netlify-badge"]'
+          ];
+          selectors.forEach(function(sel) {
+            document.querySelectorAll(sel).forEach(function(el) {
+              el.remove();
+            });
+          });
+        }
+        if (typeof window !== 'undefined') {
+          window.addEventListener('DOMContentLoaded', removeNetlifyBadge);
+          window.addEventListener('load', removeNetlifyBadge);
+          const observer = new MutationObserver(removeNetlifyBadge);
+          observer.observe(document.documentElement, { childList: true, subtree: true });
+        }
+      })();
+    </script>
+    <script type="module" crossorigin src="/assets/index-DxMRtdZe.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-daaTgfYy.css">
   </head>
   <body>
     <div id="root"></div>

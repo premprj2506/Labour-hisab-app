@@ -672,3 +672,16 @@ h1, h2, h3, h4, .serif-font {
 .fab-btn:active {
   transform: scale(0.95);
 }
+
+/* Force Hide Netlify Injected Watermark & Badge */
+iframe[src*="netlify"],
+iframe[id*="netlify"],
+#netlify-badge,
+[data-netlify-badge],
+netlify-drawer,
+div[class*="netlify-badge"] {
+  display: none !important;
+  visibility: hidden !important;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
