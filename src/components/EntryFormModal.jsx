@@ -6,6 +6,7 @@ import {
 } from '../utils/calculator';
 import {
   BriefcaseIcon,
+  BuildingIcon,
   CalendarIcon,
   CheckCircleIcon,
   CloseIcon,
@@ -20,6 +21,8 @@ export function EntryFormModal({
   onClose,
   onSave,
   workers,
+  maliks,
+  onQuickAddMalik,
   activeWorkerId,
   initialData = null,
   settings
@@ -32,6 +35,19 @@ export function EntryFormModal({
   const [workerId, setWorkerId] = useState(
     initialData?.workerId || (activeWorkerId !== 'ALL' ? activeWorkerId : workers[0]?.id || '')
   );
+  const validDefaultMalik = maliks.some((m) => m.id === settings?.defaultMalikId)
+    ? settings.defaultMalikId
+    : maliks[0]?.id || '';
+
+  const [malikId, setMalikId] = useState(
+    initialData?.malikId || validDefaultMalik
+  );
+
+  // Quick inline new Malik creation inside modal
+  const [showNewMalikBox, setShowNewMalikBox] = useState(false);
+  const [newMalikName, setNewMalikName] = useState('');
+  const [newMalikPhone, setNewMalikPhone] = useState('');
+
   const [date, setDate] = useState(initialData?.date || todayStr);
   const [workType, setWorkType] = useState(initialData?.workType || 'DAILY');
   const [status, setStatus] = useState(initialData?.status || 'FULL');
@@ -52,9 +68,7 @@ export function EntryFormModal({
 
   // Advance & Optional meta
   const [advanceAmount, setAdvanceAmount] = useState(initialData?.advanceAmount || '');
-  const [siteName, setSiteName] = useState(
-    initialData?.siteName || settings?.businessName || ''
-  );
+  const [siteName, setSiteName] = useState(initialData?.siteName || '');
   const [notes, setNotes] = useState(initialData?.notes || '');
 
   useEffect(() => {
@@ -71,6 +85,24 @@ export function EntryFormModal({
       }
     }
   }, [units, unitRate, useUnitCalc]);
+
+  const handleCreateQuickMalik = () => {
+    if (!newMalikName.trim()) {
+      alert('કૃપા કરીને માલિકનું નામ લખો');
+      return;
+    }
+    const created = onQuickAddMalik({
+      name: newMalikName,
+      phone: newMalikPhone,
+      businessName: ''
+    });
+    if (created?.id) {
+      setMalikId(created.id);
+    }
+    setNewMalikName('');
+    setNewMalikPhone('');
+    setShowNewMalikBox(false);
+  };
 
   let calculatedEarned = 0;
   if (workType === 'DAILY') {
@@ -99,6 +131,7 @@ export function EntryFormModal({
     onSave({
       id: initialData?.id,
       workerId,
+      malikId,
       date,
       workType,
       status: workType === 'DAILY' ? status : 'FULL',
@@ -135,7 +168,7 @@ export function EntryFormModal({
         </div>
 
         <form onSubmit={handleSubmit}>
-          {/* Worker Selector */}
+          {/* Worker & Malik Selection */}
           <div className="form-group">
             <label className="form-label">મજૂરનું નામ</label>
             <select
@@ -150,6 +183,83 @@ export function EntryFormModal({
                 </option>
               ))}
             </select>
+          </div>
+
+          <div className="form-group">
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+              <label className="form-label" style={{ margin: 0 }}>માલિક / કોના ત્યાં કામ કર્યું</label>
+              <button
+                type="button"
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: '#145339',
+                  fontSize: '12px',
+                  fontWeight: '700',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '3px'
+                }}
+                onClick={() => setShowNewMalikBox(!showNewMalikBox)}
+              >
+                <PlusIcon size={13} />
+                <span>{showNewMalikBox ? 'બંધ કરો' : 'નવો માલિક ઉમેરો'}</span>
+              </button>
+            </div>
+
+            {showNewMalikBox ? (
+              <div
+                style={{
+                  background: '#f0fdf4',
+                  border: '1px solid #bbf7d0',
+                  borderRadius: '10px',
+                  padding: '10px',
+                  marginBottom: '8px'
+                }}
+              >
+                <div style={{ fontSize: '12px', fontWeight: '700', color: '#145339', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                  <BuildingIcon size={14} />
+                  <span>નવા માલિકની વિગત</span>
+                </div>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', marginBottom: '8px' }}>
+                  <input
+                    type="text"
+                    className="form-control"
+                    placeholder="માલિકનું નામ"
+                    value={newMalikName}
+                    onChange={(e) => setNewMalikName(e.target.value)}
+                  />
+                  <input
+                    type="tel"
+                    className="form-control"
+                    placeholder="વોટ્સએપ નંબર"
+                    value={newMalikPhone}
+                    onChange={(e) => setNewMalikPhone(e.target.value)}
+                  />
+                </div>
+                <button
+                  type="button"
+                  className="btn btn-primary btn-sm btn-block"
+                  onClick={handleCreateQuickMalik}
+                >
+                  માલિક ઉમેરો અને પસંદ કરો
+                </button>
+              </div>
+            ) : (
+              <select
+                className="form-control"
+                value={malikId}
+                onChange={(e) => setMalikId(e.target.value)}
+              >
+                <option value="">-- માલિક પસંદ કરો --</option>
+                {maliks.map((m) => (
+                  <option key={m.id} value={m.id}>
+                    {m.name}{m.businessName ? ` (${m.businessName})` : ''}
+                  </option>
+                ))}
+              </select>
+            )}
           </div>
 
           {/* Date Picker + Quick Buttons */}
@@ -342,13 +452,13 @@ export function EntryFormModal({
             </div>
 
             <div className="form-group">
-              <label className="form-label">સાઈટ / માલિક</label>
+              <label className="form-label">જગ્યા / સાઈટ</label>
               <input
                 type="text"
                 className="form-control"
                 value={siteName}
                 onChange={(e) => setSiteName(e.target.value)}
-                placeholder="સાઈટ ૧ / વાડી"
+                placeholder="સાઈટ / પ્લોટ"
               />
             </div>
           </div>

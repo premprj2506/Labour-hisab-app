@@ -3,6 +3,8 @@ import { formatCurrency, formatDate, getWorkBadge } from '../utils/calculator';
 
 export function PrintStatement({
   worker,
+  malik,
+  maliks = [],
   settings,
   startDate,
   endDate,
@@ -10,12 +12,19 @@ export function PrintStatement({
 }) {
   const currentDate = new Date().toLocaleDateString('en-GB');
 
+  const getMalikName = (id) => {
+    const m = maliks.find((item) => item.id === id);
+    return m ? m.name : '';
+  };
+
+  const headerFirm = malik?.businessName || malik?.name || settings?.businessName || 'મજૂરી હિસાબ ખાતાવહી';
+
   return (
     <div className="printable-statement" id="printable-statement">
       {/* Printable Header */}
       <div className="print-header-box">
         <div style={{ fontSize: '12pt', color: '#475569', fontWeight: 'bold' }}>
-          {settings?.businessName || 'મજૂરી હિસાબ ખાતાવહી'}
+          {headerFirm}
         </div>
         <div className="print-title">મજૂરી હિસાબ પત્રક</div>
         <div style={{ fontSize: '10pt', color: '#64748b' }}>
@@ -32,8 +41,9 @@ export function PrintStatement({
           {worker?.dailyRate > 0 && <div><strong>રોજી દર:</strong> {formatCurrency(worker.dailyRate)} / દિવસ</div>}
         </div>
         <div style={{ textAlign: 'right' }}>
-          <div><strong>માલિક / ફર્મ:</strong> {settings?.ownerName || 'પરેશભાઈ'}</div>
-          {settings?.ownerPhone && <div><strong>સંપર્ક:</strong> {settings.ownerPhone}</div>}
+          <div><strong>માલિક:</strong> {malik ? malik.name : 'સર્વ માલિકો'}</div>
+          {malik?.businessName && <div><strong>સાઈટ/ફર્મ:</strong> {malik.businessName}</div>}
+          {malik?.phone && <div><strong>સંપર્ક:</strong> {malik.phone}</div>}
           <div><strong>હિસાબ તા.:</strong> {currentDate}</div>
         </div>
       </div>
@@ -55,6 +65,7 @@ export function PrintStatement({
             {summary.entries && summary.entries.length > 0 ? (
               summary.entries.map((item, index) => {
                 const badge = getWorkBadge(item);
+                const rowMalik = !malik ? getMalikName(item.malikId) : '';
                 return (
                   <tr key={item.id || index}>
                     <td className="text-center">{index + 1}</td>
@@ -66,9 +77,11 @@ export function PrintStatement({
                           {item.taskDesc}
                         </div>
                       )}
-                      {item.siteName && (
+                      {(rowMalik || item.siteName) && (
                         <div style={{ fontSize: '9pt', color: '#64748b' }}>
-                          સાઈટ: {item.siteName}
+                          {rowMalik ? `માલિક: ${rowMalik}` : ''}
+                          {rowMalik && item.siteName ? ' • ' : ''}
+                          {item.siteName ? `સાઈટ: ${item.siteName}` : ''}
                         </div>
                       )}
                     </td>

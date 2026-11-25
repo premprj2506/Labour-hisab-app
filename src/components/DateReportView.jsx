@@ -18,17 +18,21 @@ import {
 
 export function DateReportView({
   workers,
+  maliks,
   entries,
   activeWorkerId,
-  settings,
-  onUpdateSettings
+  initialMalikId,
+  settings
 }) {
   const defaultRange = getDateRangePreset('THIS_MONTH');
   const [startDate, setStartDate] = useState(defaultRange.start);
   const [endDate, setEndDate] = useState(defaultRange.end);
   const [selectedWorkerId, setSelectedWorkerId] = useState(activeWorkerId || 'ALL');
+  const [selectedMalikId, setSelectedMalikId] = useState(
+    initialMalikId || (maliks.length === 1 ? maliks[0].id : 'ALL')
+  );
   const [activePreset, setActivePreset] = useState('THIS_MONTH');
-  const [ownerPhone, setOwnerPhone] = useState(settings?.ownerPhone || '');
+  const [ownerPhone, setOwnerPhone] = useState('');
   const [shareSuccess, setShareSuccess] = useState('');
 
   useEffect(() => {
@@ -36,8 +40,20 @@ export function DateReportView({
   }, [activeWorkerId]);
 
   useEffect(() => {
-    setOwnerPhone(settings?.ownerPhone || '');
-  }, [settings?.ownerPhone]);
+    if (initialMalikId) {
+      setSelectedMalikId(initialMalikId);
+    }
+  }, [initialMalikId]);
+
+  // Auto-fill WhatsApp phone when selectedMalikId changes
+  const selectedMalik = maliks.find((m) => m.id === selectedMalikId) || null;
+  useEffect(() => {
+    if (selectedMalik) {
+      setOwnerPhone(selectedMalik.phone || '');
+    } else {
+      setOwnerPhone('');
+    }
+  }, [selectedMalikId, selectedMalik]);
 
   const handlePreset = (preset) => {
     const range = getDateRangePreset(preset);
@@ -52,17 +68,14 @@ export function DateReportView({
     entries,
     selectedWorkerId,
     startDate,
-    endDate
+    endDate,
+    selectedMalikId
   );
 
   const handleSendWhatsApp = () => {
-    if (ownerPhone !== settings?.ownerPhone) {
-      onUpdateSettings({ ...settings, ownerPhone });
-    }
-
     const message = buildWhatsAppMessage({
       worker: selectedWorker,
-      settings: { ...settings, ownerPhone },
+      malik: selectedMalik,
       startDate,
       endDate,
       summary
@@ -76,7 +89,7 @@ export function DateReportView({
   const handleMobileShare = async () => {
     const message = buildWhatsAppMessage({
       worker: selectedWorker,
-      settings,
+      malik: selectedMalik,
       startDate,
       endDate,
       summary
@@ -95,7 +108,7 @@ export function DateReportView({
 
   return (
     <div className="date-report-view">
-      {/* Step 1: Date & Worker Filter Card */}
+      {/* Step 1: Worker, Malik & Date Filter Card */}
       <div className="card no-print">
         <div className="section-header" style={{ marginBottom: '10px' }}>
           <div className="section-title">
@@ -104,21 +117,39 @@ export function DateReportView({
           </div>
         </div>
 
-        {/* Worker Selector */}
-        <div className="form-group">
-          <label className="form-label">મજૂર પસંદ કરો</label>
-          <select
-            className="form-control"
-            value={selectedWorkerId}
-            onChange={(e) => setSelectedWorkerId(e.target.value)}
-          >
-            <option value="ALL">બધા મજૂરો (All Workers)</option>
-            {workers.map((w) => (
-              <option key={w.id} value={w.id}>
-                {w.name} ({w.role} - ₹{w.dailyRate})
-              </option>
-            ))}
-          </select>
+        {/* Worker & Malik Selectors */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+          <div className="form-group">
+            <label className="form-label">મજૂર</label>
+            <select
+              className="form-control"
+              value={selectedWorkerId}
+              onChange={(e) => setSelectedWorkerId(e.target.value)}
+            >
+              <option value="ALL">બધા મજૂરો</option>
+              {workers.map((w) => (
+                <option key={w.id} value={w.id}>
+                  {w.name}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div className="form-group">
+            <label className="form-label">માલિક (શેઠ)</label>
+            <select
+              className="form-control"
+              value={selectedMalikId}
+              onChange={(e) => setSelectedMalikId(e.target.value)}
+            >
+              <option value="ALL">બધા માલિકો</option>
+              {maliks.map((m) => (
+                <option key={m.id} value={m.id}>
+                  {m.name}
+                </option>
+              ))}
+            </select>
+          </div>
         </div>
 
         {/* Quick Date Presets */}
@@ -185,13 +216,17 @@ export function DateReportView({
         </div>
       </div>
 
-      {/* Step 2: Summary Highlight & Direct Share */}
+      {/* Step 2: Summary Highlight */}
       <div className="hero-summary-card no-print">
         <div className="hero-top-row">
           <div>
             <div className="hero-label">
               <WalletIcon size={14} />
-              <span>ચૂકવવાપાત્ર ચોખ્ખી બાકી રકમ</span>
+              <span>
+                {selectedMalik
+                  ? `${selectedMalik.name} — બાકી રકમ`
+                  : 'ચૂકવવાપાત્ર ચોખ્ખી બાકી રકમ'}
+              </span>
             </div>
             <div className="hero-amount">{formatCurrency(summary.netPayable)}</div>
           </div>
@@ -223,7 +258,9 @@ export function DateReportView({
       {/* Share & Print Actions Card */}
       <div className="card no-print">
         <div className="form-group">
-          <label className="form-label">માલિકનો વોટ્સએપ નંબર</label>
+          <label className="form-label">
+            {selectedMalik ? `${selectedMalik.name} નો વોટ્સએપ નંબર` : 'માલિકનો વોટ્સએપ નંબર'}
+          </label>
           <div className="input-with-prefix">
             <span className="input-prefix" style={{ display: 'flex', alignItems: 'center' }}>
               <PhoneIcon size={14} />
@@ -233,7 +270,7 @@ export function DateReportView({
               className="form-control"
               value={ownerPhone}
               onChange={(e) => setOwnerPhone(e.target.value)}
-              placeholder="દા.ત. 9876543210"
+              placeholder="દા.ત. 9876543210 (નંબર વગર WhatsApp લિસ્ટ ખુલશે)"
             />
           </div>
         </div>
@@ -289,6 +326,8 @@ export function DateReportView({
       {/* Printable Statement */}
       <PrintStatement
         worker={selectedWorker}
+        malik={selectedMalik}
+        maliks={maliks}
         settings={settings}
         startDate={startDate}
         endDate={endDate}

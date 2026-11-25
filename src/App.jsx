@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   getWorkers,
+  getMaliks,
   getEntries,
   getSettings,
   saveSettings,
@@ -9,17 +10,22 @@ import {
   deleteEntry,
   addWorker,
   updateWorker,
-  deleteWorker
+  deleteWorker,
+  addMalik,
+  updateMalik,
+  deleteMalik
 } from './utils/storage';
 
 import { Header } from './components/Header';
 import { DailyEntryView } from './components/DailyEntryView';
 import { DateReportView } from './components/DateReportView';
 import { WorkersView } from './components/WorkersView';
+import { MaliksView } from './components/MaliksView';
 import { SettingsView } from './components/SettingsView';
 import { EntryFormModal } from './components/EntryFormModal';
 import {
   BookOpenIcon,
+  BuildingIcon,
   CheckCircleIcon,
   CloseIcon,
   FileBarChartIcon,
@@ -32,10 +38,12 @@ import './styles/print.css';
 
 export default function App() {
   const [workers, setWorkers] = useState([]);
+  const [maliks, setMaliks] = useState([]);
   const [entries, setEntries] = useState([]);
   const [settings, setSettings] = useState({});
   const [activeTab, setActiveTab] = useState('DAILY');
   const [activeWorkerId, setActiveWorkerId] = useState('ALL');
+  const [reportMalikId, setReportMalikId] = useState('');
 
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
@@ -51,10 +59,12 @@ export default function App() {
 
   const loadData = () => {
     const loadedWorkers = getWorkers();
+    const loadedMaliks = getMaliks();
     const loadedEntries = getEntries();
     const loadedSettings = getSettings();
 
     setWorkers(loadedWorkers);
+    setMaliks(loadedMaliks);
     setEntries(loadedEntries);
     setSettings(loadedSettings);
 
@@ -85,6 +95,11 @@ export default function App() {
       showToast('એન્ટ્રી અપડેટ થઈ ગઈ!');
     } else {
       addEntry(entryData);
+      if (entryData.malikId) {
+        const updated = { ...settings, defaultMalikId: entryData.malikId };
+        setSettings(updated);
+        saveSettings(updated);
+      }
       showToast('નવી એન્ટ્રી સેવ થઈ ગઈ!');
     }
     setEntries(getEntries());
@@ -130,9 +145,28 @@ export default function App() {
     showToast('મજૂર ડિલીટ થયા!');
   };
 
-  const handleSaveSettings = (newSettings) => {
-    setSettings(newSettings);
-    saveSettings(newSettings);
+  const handleAddMalik = (mData) => {
+    const created = addMalik(mData);
+    setMaliks(getMaliks());
+    showToast('નવો માલિક ઉમેરાયો!');
+    return created;
+  };
+
+  const handleUpdateMalik = (id, mData) => {
+    updateMalik(id, mData);
+    setMaliks(getMaliks());
+    showToast('માલિકની વિગત અપડેટ થઈ!');
+  };
+
+  const handleDeleteMalik = (id) => {
+    deleteMalik(id);
+    setMaliks(getMaliks());
+    showToast('માલિક ડિલીટ થયા!');
+  };
+
+  const handleOpenMalikReport = (malikId) => {
+    setReportMalikId(malikId);
+    setActiveTab('REPORT');
   };
 
   return (
@@ -154,6 +188,7 @@ export default function App() {
         {activeTab === 'DAILY' && (
           <DailyEntryView
             workers={workers}
+            maliks={maliks}
             entries={entries}
             activeWorkerId={activeWorkerId}
             onOpenAddEntry={handleOpenAddEntry}
@@ -165,10 +200,11 @@ export default function App() {
         {activeTab === 'REPORT' && (
           <DateReportView
             workers={workers}
+            maliks={maliks}
             entries={entries}
             activeWorkerId={activeWorkerId}
+            initialMalikId={reportMalikId}
             settings={settings}
-            onUpdateSettings={handleSaveSettings}
           />
         )}
 
@@ -184,17 +220,28 @@ export default function App() {
           />
         )}
 
+        {activeTab === 'MALIKS' && (
+          <MaliksView
+            maliks={maliks}
+            entries={entries}
+            activeWorkerId={activeWorkerId}
+            onAddMalik={handleAddMalik}
+            onUpdateMalik={handleUpdateMalik}
+            onDeleteMalik={handleDeleteMalik}
+            onOpenMalikReport={handleOpenMalikReport}
+          />
+        )}
+
         {activeTab === 'SETTINGS' && (
           <SettingsView
-            settings={settings}
-            onSaveSettings={handleSaveSettings}
             onDataReload={loadData}
             onNotify={showToast}
+            onGoToMaliks={() => setActiveTab('MALIKS')}
           />
         )}
       </main>
 
-      {/* Bottom Navigation */}
+      {/* Bottom Navigation (5 compact tabs) */}
       <nav className="bottom-nav no-print">
         <button
           type="button"
@@ -204,18 +251,21 @@ export default function App() {
           <span className="nav-icon-wrap">
             <BookOpenIcon size={20} />
           </span>
-          <span className="nav-label">દૈનિક હિસાબ</span>
+          <span className="nav-label">દૈનિક</span>
         </button>
 
         <button
           type="button"
           className={`nav-item ${activeTab === 'REPORT' ? 'active' : ''}`}
-          onClick={() => setActiveTab('REPORT')}
+          onClick={() => {
+            setReportMalikId('');
+            setActiveTab('REPORT');
+          }}
         >
           <span className="nav-icon-wrap">
             <FileBarChartIcon size={20} />
           </span>
-          <span className="nav-label">તારીખ & PDF</span>
+          <span className="nav-label">PDF / શેર</span>
         </button>
 
         <button
@@ -227,6 +277,17 @@ export default function App() {
             <UsersIcon size={20} />
           </span>
           <span className="nav-label">મજૂરો</span>
+        </button>
+
+        <button
+          type="button"
+          className={`nav-item ${activeTab === 'MALIKS' ? 'active' : ''}`}
+          onClick={() => setActiveTab('MALIKS')}
+        >
+          <span className="nav-icon-wrap">
+            <BuildingIcon size={20} />
+          </span>
+          <span className="nav-label">માલિકો</span>
         </button>
 
         <button
@@ -248,6 +309,8 @@ export default function App() {
         onClose={() => setIsEntryModalOpen(false)}
         onSave={handleSaveEntry}
         workers={workers}
+        maliks={maliks}
+        onQuickAddMalik={handleAddMalik}
         activeWorkerId={activeWorkerId}
         initialData={editingEntry}
         settings={settings}

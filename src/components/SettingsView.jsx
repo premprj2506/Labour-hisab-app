@@ -1,36 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { exportAllData, importAllData, resetToDemoData } from '../utils/storage';
 import {
+  BuildingIcon,
   DownloadIcon,
-  PhoneIcon,
   RefreshIcon,
-  SaveIcon,
-  SettingsIcon,
   UploadIcon
 } from './Icons';
 
-export function SettingsView({ settings, onSaveSettings, onDataReload, onNotify }) {
-  const [ownerName, setOwnerName] = useState(settings?.ownerName || '');
-  const [ownerPhone, setOwnerPhone] = useState(settings?.ownerPhone || '');
-  const [businessName, setBusinessName] = useState(settings?.businessName || '');
-
-  useEffect(() => {
-    setOwnerName(settings?.ownerName || '');
-    setOwnerPhone(settings?.ownerPhone || '');
-    setBusinessName(settings?.businessName || '');
-  }, [settings]);
-
-  const handleSave = (e) => {
-    e.preventDefault();
-    onSaveSettings({
-      ...settings,
-      ownerName,
-      ownerPhone,
-      businessName
-    });
-    if (onNotify) onNotify('સેટિંગ્સ સાચવવામાં આવ્યા!');
-  };
-
+export function SettingsView({ onDataReload, onNotify, onGoToMaliks }) {
   const handleExport = () => {
     const jsonStr = exportAllData();
     const blob = new Blob([jsonStr], { type: 'application/json' });
@@ -77,61 +54,25 @@ export function SettingsView({ settings, onSaveSettings, onDataReload, onNotify 
 
   return (
     <div className="settings-view no-print">
+      {/* Quick Shortcut to Multiple Maliks */}
       <div className="card">
-        <div className="section-header" style={{ marginBottom: '12px' }}>
+        <div className="section-header" style={{ marginBottom: '6px' }}>
           <div className="section-title">
-            <SettingsIcon size={18} />
-            <span>માલિક અને વ્યવસાયની વિગત</span>
+            <BuildingIcon size={18} />
+            <span>માલિકોનું લિસ્ટ અને નંબર</span>
           </div>
         </div>
-
-        <form onSubmit={handleSave}>
-          <div className="form-group">
-            <label className="form-label">માલિક / ફર્મનું નામ</label>
-            <input
-              type="text"
-              className="form-control"
-              value={businessName}
-              onChange={(e) => setBusinessName(e.target.value)}
-              placeholder="દા.ત. પટેલ ફાર્મ / શ્રી ગણેશ ફર્નિચર"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">માલિકનું પૂરું નામ</label>
-            <input
-              type="text"
-              className="form-control"
-              value={ownerName}
-              onChange={(e) => setOwnerName(e.target.value)}
-              placeholder="દા.ત. પરેશભાઈ પટેલ"
-            />
-          </div>
-
-          <div className="form-group">
-            <label className="form-label">વોટ્સએપ મોબાઈલ નંબર</label>
-            <div className="input-with-prefix">
-              <span className="input-prefix" style={{ display: 'flex', alignItems: 'center' }}>
-                <PhoneIcon size={14} />
-              </span>
-              <input
-                type="tel"
-                className="form-control"
-                value={ownerPhone}
-                onChange={(e) => setOwnerPhone(e.target.value)}
-                placeholder="દા.ત. 9876543210"
-              />
-            </div>
-            <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>
-              * આ નંબર પર મજૂર સીધો હિસાબ વોટ્સએપ કરી શકશે.
-            </div>
-          </div>
-
-          <button type="submit" className="btn btn-primary btn-block">
-            <SaveIcon size={17} />
-            <span>સેટિંગ્સ સાચવો</span>
-          </button>
-        </form>
+        <p style={{ fontSize: '12.5px', color: '#64748b', marginBottom: '12px' }}>
+          જો તમે એક કરતાં વધુ માલિક (શેઠ) ના ત્યાં કામ કરતા હો, તો દરેક માલિકનું નામ અને વોટ્સએપ નંબર "માલિકો" ટેબમાં ઉમેરી શકો છો.
+        </p>
+        <button
+          type="button"
+          className="btn btn-primary btn-block"
+          onClick={onGoToMaliks}
+        >
+          <BuildingIcon size={16} />
+          <span>માલિકોનું લિસ્ટ ખોલો</span>
+        </button>
       </div>
 
       {/* Backup and Restore */}
@@ -143,7 +84,7 @@ export function SettingsView({ settings, onSaveSettings, onDataReload, onNotify 
           </div>
         </div>
         <p style={{ fontSize: '12.5px', color: '#64748b', marginBottom: '12px' }}>
-          તમારો તમામ હિસાબ અને મજૂરોનો ડેટા સુરક્ષિત રાખવા માટે બેકઅપ ફાઈલ ડાઉનલોડ કે રિસ્ટોર કરી શકો છો.
+          તમારો તમામ હિસાબ, મજૂરો અને માલિકોનો ડેટા સુરક્ષિત રાખવા માટે બેકઅપ ફાઈલ ડાઉનલોડ કે રિસ્ટોર કરી શકો છો.
         </p>
 
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>

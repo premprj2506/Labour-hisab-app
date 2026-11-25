@@ -7,6 +7,7 @@ import {
 } from '../utils/calculator';
 import {
   BriefcaseIcon,
+  BuildingIcon,
   CheckCircleIcon,
   ClipboardIcon,
   EditIcon,
@@ -20,6 +21,7 @@ import {
 
 export function DailyEntryView({
   workers,
+  maliks,
   entries,
   activeWorkerId,
   onOpenAddEntry,
@@ -27,21 +29,25 @@ export function DailyEntryView({
   onDeleteEntry
 }) {
   const [filterMode, setFilterMode] = useState('ALL'); // 'ALL', 'DAILY', 'CUSTOM', 'ADVANCE'
+  const [selectedMalikFilter, setSelectedMalikFilter] = useState('ALL');
 
-  // Filter entries for active worker
+  // Filter entries for active worker AND selected malik filter
   const workerEntries = entries.filter((e) => {
-    if (activeWorkerId && activeWorkerId !== 'ALL') {
-      return e.workerId === activeWorkerId;
+    if (activeWorkerId && activeWorkerId !== 'ALL' && e.workerId !== activeWorkerId) {
+      return false;
+    }
+    if (selectedMalikFilter !== 'ALL' && e.malikId !== selectedMalikFilter) {
+      return false;
     }
     return true;
   });
 
-  // Totals across all entries for active worker
+  // Totals across displayed worker + malik selection
   const totalEarned = workerEntries.reduce((sum, e) => sum + (Number(e.earnedAmount) || 0), 0);
   const totalAdvance = workerEntries.reduce((sum, e) => sum + (Number(e.advanceAmount) || 0), 0);
   const netTotal = totalEarned - totalAdvance;
 
-  // Apply quick filter chip
+  // Apply quick work type filter chip
   const filteredEntries = workerEntries.filter((e) => {
     if (filterMode === 'DAILY') return e.workType !== 'CUSTOM';
     if (filterMode === 'CUSTOM') return e.workType === 'CUSTOM';
@@ -54,6 +60,13 @@ export function DailyEntryView({
     return w ? w.name : 'મજૂર';
   };
 
+  const getMalikName = (id) => {
+    const m = maliks.find((item) => item.id === id);
+    return m ? m.name : '';
+  };
+
+  const activeMalikObj = maliks.find((m) => m.id === selectedMalikFilter);
+
   const renderBadgeIcon = (type) => {
     if (type === 'CUSTOM') return <BriefcaseIcon size={12} />;
     if (type === 'HALF') return <HalfCircleIcon size={12} />;
@@ -63,6 +76,29 @@ export function DailyEntryView({
 
   return (
     <div className="daily-entry-view no-print">
+      {/* Malik Quick Filter Strip */}
+      {maliks.length > 0 && (
+        <div className="quick-date-row" style={{ marginBottom: '12px' }}>
+          <button
+            type="button"
+            className={`quick-chip ${selectedMalikFilter === 'ALL' ? 'active' : ''}`}
+            onClick={() => setSelectedMalikFilter('ALL')}
+          >
+            બધા માલિકો
+          </button>
+          {maliks.map((m) => (
+            <button
+              key={m.id}
+              type="button"
+              className={`quick-chip ${selectedMalikFilter === m.id ? 'active' : ''}`}
+              onClick={() => setSelectedMalikFilter(m.id)}
+            >
+              {m.name}
+            </button>
+          ))}
+        </div>
+      )}
+
       {/* Hero Summary Card */}
       <div className="hero-summary-card">
         <div className="hero-top-row">
@@ -70,7 +106,11 @@ export function DailyEntryView({
             <div className="hero-label">
               <WalletIcon size={14} />
               <span>
-                {activeWorkerId === 'ALL' ? 'સર્વ મજૂરોનો બાકી હિસાબ' : 'ચોખ્ખી બાકી રકમ'}
+                {activeMalikObj
+                  ? `${activeMalikObj.name} - બાકી હિસાબ`
+                  : activeWorkerId === 'ALL'
+                  ? 'સર્વ મજૂરોનો બાકી હિસાબ'
+                  : 'ચોખ્ખી બાકી રકમ'}
               </span>
             </div>
             <div className="hero-amount">{formatCurrency(netTotal)}</div>
@@ -200,6 +240,7 @@ export function DailyEntryView({
             const dayNum = dateParts[2] || '';
             const monthShort = getGujaratiMonthShort(dateParts[1] || '');
             const weekdayShort = getGujaratiWeekdayShort(item.date);
+            const malikName = getMalikName(item.malikId);
 
             return (
               <div key={item.id} className="entry-item">
@@ -226,12 +267,23 @@ export function DailyEntryView({
                     {item.workType === 'CUSTOM' ? item.taskDesc : badge.desc}
                   </div>
 
-                  {item.siteName && (
-                    <div className="entry-sub">
-                      <MapPinIcon size={12} />
-                      <span>{item.siteName}</span>
-                    </div>
-                  )}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
+                    {malikName && (
+                      <span
+                        className="entry-sub"
+                        style={{ color: '#145339', fontWeight: '600' }}
+                      >
+                        <BuildingIcon size={12} />
+                        <span>{malikName}</span>
+                      </span>
+                    )}
+                    {item.siteName && (
+                      <span className="entry-sub">
+                        <MapPinIcon size={12} />
+                        <span>{item.siteName}</span>
+                      </span>
+                    )}
+                  </div>
 
                   {item.notes && (
                     <div className="entry-note">નોંધ: {item.notes}</div>

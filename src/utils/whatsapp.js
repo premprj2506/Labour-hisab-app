@@ -10,13 +10,16 @@ function formatShortDate(dateString) {
   return dateString;
 }
 
-export function buildWhatsAppMessage({ worker, startDate, endDate, summary }) {
+export function buildWhatsAppMessage({ worker, malik, startDate, endDate, summary }) {
   const workerName = worker ? worker.name : 'બધા મજૂરો';
   const startFormatted = formatDate(startDate);
   const endFormatted = formatDate(endDate);
 
   let msg = `*મજૂરી હિસાબ*\n`;
   msg += `👤 ${workerName}\n`;
+  if (malik) {
+    msg += `🏢 ${malik.name}${malik.businessName ? ` (${malik.businessName})` : ''}\n`;
+  }
   msg += `📅 ${startFormatted} થી ${endFormatted}\n`;
 
   if (summary.entries && summary.entries.length > 0) {

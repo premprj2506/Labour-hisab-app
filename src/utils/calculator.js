@@ -47,10 +47,13 @@ export function getGujaratiWeekdayShort(dateString) {
   return GUJARATI_WEEKDAYS_SHORT[d.getDay()] || '';
 }
 
-export function calculateStatement(entries, workerId, startDate, endDate) {
-  // Filter by worker (or all if workerId === 'ALL')
+export function calculateStatement(entries, workerId, startDate, endDate, malikId = 'ALL') {
+  // Filter by worker, malik, and date range
   let filtered = entries.filter(e => {
     if (workerId && workerId !== 'ALL' && e.workerId !== workerId) {
+      return false;
+    }
+    if (malikId && malikId !== 'ALL' && e.malikId !== malikId) {
       return false;
     }
     if (startDate && e.date < startDate) return false;
