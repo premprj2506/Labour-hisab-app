@@ -1,12 +1,22 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { CloseIcon, SaveIcon, UsersIcon } from './Icons';
 
 export function WorkerModal({ isOpen, onClose, onSave, initialData = null }) {
-  if (!isOpen) return null;
+  const [name, setName] = useState('');
+  const [phone, setPhone] = useState('');
+  const [dailyRate, setDailyRate] = useState(500);
+  const [role, setRole] = useState('જનરલ મજૂર');
 
-  const [name, setName] = useState(initialData?.name || '');
-  const [phone, setPhone] = useState(initialData?.phone || '');
-  const [dailyRate, setDailyRate] = useState(initialData?.dailyRate || 500);
-  const [role, setRole] = useState(initialData?.role || 'જનરલ મજૂર');
+  useEffect(() => {
+    if (isOpen) {
+      setName(initialData?.name || '');
+      setPhone(initialData?.phone || '');
+      setDailyRate(initialData?.dailyRate ?? 500);
+      setRole(initialData?.role || 'જનરલ મજૂર');
+    }
+  }, [isOpen, initialData]);
+
+  if (!isOpen) return null;
 
   const handleSubmit = (e) => {
     e.preventDefault();
@@ -29,18 +39,20 @@ export function WorkerModal({ isOpen, onClose, onSave, initialData = null }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+        <div className="modal-handle" />
         <div className="modal-header">
           <div className="modal-title">
-            {initialData ? '✏️ મજૂર વિગત એડિટ કરો' : '👥 નવો મજૂર ઉમેરો'}
+            <UsersIcon size={18} />
+            <span>{initialData ? 'મજૂર વિગત એડિટ કરો' : 'નવો મજૂર ઉમેરો'}</span>
           </div>
-          <button type="button" className="modal-close" onClick={onClose}>
-            ✕
+          <button type="button" className="modal-close" onClick={onClose} aria-label="બંધ કરો">
+            <CloseIcon size={18} />
           </button>
         </div>
 
         <form onSubmit={handleSubmit}>
           <div className="form-group">
-            <label className="form-label">મજૂરનું નામ:</label>
+            <label className="form-label">મજૂરનું નામ</label>
             <input
               type="text"
               className="form-control"
@@ -52,7 +64,7 @@ export function WorkerModal({ isOpen, onClose, onSave, initialData = null }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label">મોબાઈલ નંબર (ઓપ્શનલ):</label>
+            <label className="form-label">મોબાઈલ નંબર (ઓપ્શનલ)</label>
             <input
               type="tel"
               className="form-control"
@@ -63,22 +75,25 @@ export function WorkerModal({ isOpen, onClose, onSave, initialData = null }) {
           </div>
 
           <div className="form-group">
-            <label className="form-label">દૈનિક રોજી દર (₹ / દિવસ):</label>
-            <input
-              type="number"
-              className="form-control"
-              value={dailyRate}
-              onChange={(e) => setDailyRate(e.target.value)}
-              placeholder="500"
-              required
-            />
-            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-              * જો રોજી ફિક્સ ન હોય તો પણ સામાન્ય દર લખી શકાય છે (કામ મુજબ મજૂરીમાં અલગ રકમ લખી શકાશે).
+            <label className="form-label">દૈનિક રોજી દર (દિવસ દીઠ)</label>
+            <div className="input-with-prefix">
+              <span className="input-prefix">₹</span>
+              <input
+                type="number"
+                className="form-control"
+                value={dailyRate}
+                onChange={(e) => setDailyRate(e.target.value)}
+                placeholder="500"
+                required
+              />
+            </div>
+            <div style={{ fontSize: '11.5px', color: '#64748b', marginTop: '4px' }}>
+              * જો રોજી ફિક્સ ન હોય તો પણ સામાન્ય દર લખી શકાય છે (કામ મુજબમાં અલગ રકમ લખી શકાશે).
             </div>
           </div>
 
           <div className="form-group">
-            <label className="form-label">કામનો પ્રકાર / ભૂમિકા:</label>
+            <label className="form-label">કામનો પ્રકાર / ભૂમિકા</label>
             <input
               type="text"
               className="form-control"
@@ -89,7 +104,8 @@ export function WorkerModal({ isOpen, onClose, onSave, initialData = null }) {
           </div>
 
           <button type="submit" className="btn btn-primary btn-block btn-lg">
-            💾 મજૂર સેવ કરો
+            <SaveIcon size={18} />
+            <span>મજૂર સેવ કરો</span>
           </button>
         </form>
       </div>

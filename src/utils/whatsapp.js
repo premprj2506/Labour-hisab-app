@@ -21,7 +21,7 @@ export function buildWhatsAppMessage({ worker, settings, startDate, endDate, sum
   msg += `• કુલ દિવસો/કામ: *${summary.count} એન્ટ્રી*\n`;
   if (summary.fullDays > 0) msg += `  - પૂરી રોજી (દિવસ): ${summary.fullDays}\n`;
   if (summary.halfDays > 0) msg += `  - અડધી રોજી: ${summary.halfDays}\n`;
-  if (summary.customTasksCount > 0) msg += `  - ઉચક / કામ મુજબ: ${summary.customTasksCount}\n`;
+  if (summary.customTasksCount > 0) msg += `  - કામ મુજબ: ${summary.customTasksCount}\n`;
   msg += `💰 *કુલ મજૂરી:* ${formatCurrency(summary.totalEarned)}\n`;
   msg += `🔻 *કુલ ઉપાડ (એડવાન્સ):* ${formatCurrency(summary.totalAdvance)}\n`;
   msg += `━━━━━━━━━━━━━━━━━━━\n`;
@@ -33,7 +33,7 @@ export function buildWhatsAppMessage({ worker, settings, startDate, endDate, sum
     msg += `📝 *દૈનિક વિગત:*\n`;
     summary.entries.slice(0, 10).forEach((item) => {
       const d = formatDate(item.date);
-      let workDesc = item.workType === 'CUSTOM' ? (item.taskDesc || 'ઉચક કામ') : (item.status === 'HALF' ? 'અડધો દિવસ' : 'પૂરો દિવસ');
+      let workDesc = item.workType === 'CUSTOM' ? (item.taskDesc || 'કામ મુજબ') : (item.status === 'HALF' ? 'અડધો દિવસ' : 'પૂરો દિવસ');
       let line = `• ${d}: ${workDesc} (${formatCurrency(item.earned)})`;
       if (item.advance > 0) {
         line += ` [ઉપાડ: ${formatCurrency(item.advance)}]`;

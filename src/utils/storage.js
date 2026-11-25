@@ -137,7 +137,7 @@ const INITIAL_ENTRIES = [
     advanceAmount: 0,
     taskDesc: '૪ બેગ સિમેન્ટ ભરવાનું અને મિક્સિંગ',
     siteName: 'વાડી સાઈટ',
-    notes: 'ઉચક કામ'
+    notes: 'કામ મુજબ'
   }
 ];
 

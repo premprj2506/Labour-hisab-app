@@ -18,6 +18,14 @@ import { DateReportView } from './components/DateReportView';
 import { WorkersView } from './components/WorkersView';
 import { SettingsView } from './components/SettingsView';
 import { EntryFormModal } from './components/EntryFormModal';
+import {
+  BookOpenIcon,
+  CheckCircleIcon,
+  CloseIcon,
+  FileBarChartIcon,
+  SettingsIcon,
+  UsersIcon
+} from './components/Icons';
 
 import './styles/app.css';
 import './styles/print.css';
@@ -26,17 +34,21 @@ export default function App() {
   const [workers, setWorkers] = useState([]);
   const [entries, setEntries] = useState([]);
   const [settings, setSettings] = useState({});
-  const [activeTab, setActiveTab] = useState('DAILY'); // 'DAILY', 'REPORT', 'WORKERS', 'SETTINGS'
+  const [activeTab, setActiveTab] = useState('DAILY');
   const [activeWorkerId, setActiveWorkerId] = useState('ALL');
 
-  // Modal State
   const [isEntryModalOpen, setIsEntryModalOpen] = useState(false);
   const [editingEntry, setEditingEntry] = useState(null);
-
-  // Worker Switcher dropdown modal
   const [showWorkerPicker, setShowWorkerPicker] = useState(false);
+  const [toastMsg, setToastMsg] = useState('');
 
-  // Load Initial Data
+  const showToast = (msg) => {
+    setToastMsg(msg);
+    setTimeout(() => {
+      setToastMsg((prev) => (prev === msg ? '' : prev));
+    }, 2600);
+  };
+
   const loadData = () => {
     const loadedWorkers = getWorkers();
     const loadedEntries = getEntries();
@@ -59,7 +71,6 @@ export default function App() {
 
   const activeWorker = workers.find((w) => w.id === activeWorkerId) || null;
 
-  // Worker Selection Handler
   const handleSelectActiveWorker = (id) => {
     setActiveWorkerId(id);
     const updated = { ...settings, activeWorkerId: id };
@@ -68,12 +79,13 @@ export default function App() {
     setShowWorkerPicker(false);
   };
 
-  // Entry CRUD handlers
   const handleSaveEntry = (entryData) => {
     if (entryData.id) {
       updateEntry(entryData.id, entryData);
+      showToast('એન્ટ્રી અપડેટ થઈ ગઈ!');
     } else {
       addEntry(entryData);
+      showToast('નવી એન્ટ્રી સેવ થઈ ગઈ!');
     }
     setEntries(getEntries());
   };
@@ -81,6 +93,7 @@ export default function App() {
   const handleDeleteEntry = (id) => {
     deleteEntry(id);
     setEntries(getEntries());
+    showToast('એન્ટ્રી કાઢી નાખવામાં આવી!');
   };
 
   const handleOpenAddEntry = () => {
@@ -93,16 +106,17 @@ export default function App() {
     setIsEntryModalOpen(true);
   };
 
-  // Worker CRUD handlers
   const handleAddWorker = (wData) => {
     const created = addWorker(wData);
     setWorkers(getWorkers());
     handleSelectActiveWorker(created.id);
+    showToast('નવો મજૂર ઉમેરાયો!');
   };
 
   const handleUpdateWorker = (id, wData) => {
     updateWorker(id, wData);
     setWorkers(getWorkers());
+    showToast('મજૂરની વિગત અપડેટ થઈ!');
   };
 
   const handleDeleteWorker = (id) => {
@@ -113,6 +127,7 @@ export default function App() {
     if (activeWorkerId === id) {
       setActiveWorkerId(updatedWorkers[0]?.id || 'ALL');
     }
+    showToast('મજૂર ડિલીટ થયા!');
   };
 
   const handleSaveSettings = (newSettings) => {
@@ -122,14 +137,19 @@ export default function App() {
 
   return (
     <div className="app-container">
-      {/* App Header */}
+      {toastMsg && (
+        <div className="toast-banner no-print" role="status">
+          <CheckCircleIcon size={16} />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
       <Header
         activeWorker={activeWorker}
         onSwitchWorker={() => setShowWorkerPicker(true)}
         onOpenAddEntry={handleOpenAddEntry}
       />
 
-      {/* Main Content Area */}
       <main className="app-content">
         {activeTab === 'DAILY' && (
           <DailyEntryView
@@ -169,6 +189,7 @@ export default function App() {
             settings={settings}
             onSaveSettings={handleSaveSettings}
             onDataReload={loadData}
+            onNotify={showToast}
           />
         )}
       </main>
@@ -180,7 +201,9 @@ export default function App() {
           className={`nav-item ${activeTab === 'DAILY' ? 'active' : ''}`}
           onClick={() => setActiveTab('DAILY')}
         >
-          <span className="nav-icon">📝</span>
+          <span className="nav-icon-wrap">
+            <BookOpenIcon size={20} />
+          </span>
           <span className="nav-label">દૈનિક હિસાબ</span>
         </button>
 
@@ -189,7 +212,9 @@ export default function App() {
           className={`nav-item ${activeTab === 'REPORT' ? 'active' : ''}`}
           onClick={() => setActiveTab('REPORT')}
         >
-          <span className="nav-icon">📊</span>
+          <span className="nav-icon-wrap">
+            <FileBarChartIcon size={20} />
+          </span>
           <span className="nav-label">તારીખ & PDF</span>
         </button>
 
@@ -198,7 +223,9 @@ export default function App() {
           className={`nav-item ${activeTab === 'WORKERS' ? 'active' : ''}`}
           onClick={() => setActiveTab('WORKERS')}
         >
-          <span className="nav-icon">👥</span>
+          <span className="nav-icon-wrap">
+            <UsersIcon size={20} />
+          </span>
           <span className="nav-label">મજૂરો</span>
         </button>
 
@@ -207,13 +234,16 @@ export default function App() {
           className={`nav-item ${activeTab === 'SETTINGS' ? 'active' : ''}`}
           onClick={() => setActiveTab('SETTINGS')}
         >
-          <span className="nav-icon">⚙️</span>
+          <span className="nav-icon-wrap">
+            <SettingsIcon size={20} />
+          </span>
           <span className="nav-label">સેટિંગ્સ</span>
         </button>
       </nav>
 
       {/* Entry Modal */}
       <EntryFormModal
+        key={editingEntry ? editingEntry.id : `new-${isEntryModalOpen}-${activeWorkerId}`}
         isOpen={isEntryModalOpen}
         onClose={() => setIsEntryModalOpen(false)}
         onSave={handleSaveEntry}
@@ -230,24 +260,30 @@ export default function App() {
           onClick={() => setShowWorkerPicker(false)}
         >
           <div className="modal-content" onClick={(e) => e.stopPropagation()}>
+            <div className="modal-handle" />
             <div className="modal-header">
-              <div className="modal-title">👤 મજૂર પસંદ કરો</div>
+              <div className="modal-title">
+                <UsersIcon size={18} />
+                <span>મજૂર પસંદ કરો</span>
+              </div>
               <button
                 type="button"
                 className="modal-close"
                 onClick={() => setShowWorkerPicker(false)}
+                aria-label="બંધ કરો"
               >
-                ✕
+                <CloseIcon size={18} />
               </button>
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <button
                 type="button"
                 className={`btn ${activeWorkerId === 'ALL' ? 'btn-primary' : 'btn-outline'}`}
-                style={{ justifyContent: 'flex-start' }}
+                style={{ justifyContent: 'flex-start', padding: '12px 14px' }}
                 onClick={() => handleSelectActiveWorker('ALL')}
               >
-                👥 બધા મજૂરો (સામૂહિક હિસાબ)
+                <UsersIcon size={18} />
+                <span>બધા મજૂરો (સામૂહિક હિસાબ)</span>
               </button>
               {workers.map((w) => (
                 <button
@@ -256,17 +292,35 @@ export default function App() {
                   className={`btn ${activeWorkerId === w.id ? 'btn-primary' : 'btn-outline'}`}
                   style={{
                     justifyContent: 'space-between',
-                    padding: '12px 16px'
+                    padding: '12px 14px'
                   }}
                   onClick={() => handleSelectActiveWorker(w.id)}
                 >
-                  <div style={{ textAlign: 'left' }}>
-                    <div style={{ fontWeight: '700' }}>{w.name}</div>
-                    <div style={{ fontSize: '12px', opacity: 0.8 }}>
-                      {w.role} {w.phone ? `(${w.phone})` : ''}
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px', textAlign: 'left' }}>
+                    <div
+                      style={{
+                        width: '32px',
+                        height: '32px',
+                        borderRadius: '50%',
+                        background: activeWorkerId === w.id ? 'rgba(255,255,255,0.2)' : '#e6f4ed',
+                        color: activeWorkerId === w.id ? '#ffffff' : '#145339',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        fontWeight: '700',
+                        fontSize: '14px'
+                      }}
+                    >
+                      {w.name.charAt(0)}
+                    </div>
+                    <div>
+                      <div style={{ fontWeight: '700' }}>{w.name}</div>
+                      <div style={{ fontSize: '12px', opacity: 0.8 }}>
+                        {w.role} {w.phone ? `(${w.phone})` : ''}
+                      </div>
                     </div>
                   </div>
-                  <div style={{ fontWeight: '700' }}>₹{w.dailyRate}/દિવસ</div>
+                  <div style={{ fontWeight: '700', fontSize: '13px' }}>₹{w.dailyRate}/દિવસ</div>
                 </button>
               ))}
             </div>

@@ -1,6 +1,14 @@
 import React, { useState } from 'react';
 import { formatCurrency } from '../utils/calculator';
 import { WorkerModal } from './WorkerModal';
+import {
+  CheckCircleIcon,
+  EditIcon,
+  PhoneIcon,
+  PlusIcon,
+  TrashIcon,
+  UsersIcon
+} from './Icons';
 
 export function WorkersView({
   workers,
@@ -34,20 +42,14 @@ export function WorkersView({
 
   return (
     <div className="workers-view no-print">
-      <div
-        style={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center',
-          marginBottom: '14px'
-        }}
-      >
+      <div className="section-header" style={{ marginBottom: '14px' }}>
         <div>
-          <h2 style={{ fontSize: '18px', fontWeight: '700' }}>
-            👥 મજૂરોનું સંચાલન ({workers.length})
-          </h2>
-          <div style={{ fontSize: '12px', color: '#64748b' }}>
-            દરેક મજૂરનો હિસાબ અને રોજી દર
+          <div className="section-title">
+            <UsersIcon size={19} />
+            <span>મજૂરોનું સંચાલન ({workers.length})</span>
+          </div>
+          <div className="section-sub">
+            દરેક મજૂરનો હિસાબ અને દૈનિક રોજી દર
           </div>
         </div>
         <button
@@ -55,8 +57,57 @@ export function WorkersView({
           className="btn btn-primary btn-sm"
           onClick={handleOpenAdd}
         >
-          ➕ નવો મજૂર
+          <PlusIcon size={15} />
+          <span>નવો મજૂર</span>
         </button>
+      </div>
+
+      {/* Quick All-Workers Switch Card */}
+      <div
+        className="card"
+        style={{
+          padding: '11px 14px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          borderColor: activeWorkerId === 'ALL' ? '#145339' : '#e4eae6',
+          borderWidth: activeWorkerId === 'ALL' ? '2px' : '1px'
+        }}
+      >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+          <div
+            style={{
+              width: '36px',
+              height: '36px',
+              borderRadius: '50%',
+              background: activeWorkerId === 'ALL' ? '#145339' : '#e6f4ed',
+              color: activeWorkerId === 'ALL' ? '#ffffff' : '#145339',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <UsersIcon size={17} />
+          </div>
+          <div>
+            <div style={{ fontSize: '14px', fontWeight: '700' }}>બધા મજૂરો (સામૂહિક)</div>
+            <div style={{ fontSize: '11.5px', color: '#64748b' }}>સર્વ મજૂરોનો એકસાથે હિસાબ જુઓ</div>
+          </div>
+        </div>
+        {activeWorkerId === 'ALL' ? (
+          <span className="badge badge-full">
+            <CheckCircleIcon size={12} />
+            <span>પસંદ કરેલ</span>
+          </span>
+        ) : (
+          <button
+            type="button"
+            className="btn btn-outline btn-sm"
+            onClick={() => onSelectActiveWorker('ALL')}
+          >
+            પસંદ કરો
+          </button>
+        )}
       </div>
 
       {/* Workers list */}
@@ -78,7 +129,7 @@ export function WorkersView({
             key={w.id}
             className="card"
             style={{
-              borderColor: isActive ? '#1e5139' : '#e2e8f0',
+              borderColor: isActive ? '#145339' : '#e4eae6',
               borderWidth: isActive ? '2px' : '1px'
             }}
           >
@@ -87,7 +138,8 @@ export function WorkersView({
                 display: 'flex',
                 alignItems: 'flex-start',
                 justifyContent: 'space-between',
-                marginBottom: '10px'
+                gap: '8px',
+                marginBottom: '12px'
               }}
             >
               <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
@@ -96,30 +148,38 @@ export function WorkersView({
                     width: '42px',
                     height: '42px',
                     borderRadius: '50%',
-                    background: isActive ? '#1e5139' : '#e2e8f0',
-                    color: isActive ? '#ffffff' : '#1e293b',
+                    background: isActive ? '#145339' : '#e6f4ed',
+                    color: isActive ? '#ffffff' : '#145339',
                     display: 'flex',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    fontWeight: '700',
-                    fontSize: '18px'
+                    fontWeight: '800',
+                    fontSize: '17px',
+                    flexShrink: 0
                   }}
                 >
                   {w.name.charAt(0)}
                 </div>
                 <div>
-                  <div style={{ fontSize: '16px', fontWeight: '700' }}>
+                  <div style={{ fontSize: '15.5px', fontWeight: '700' }}>
                     {w.name}
                   </div>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>
-                    {w.role} {w.phone ? `• 📞 ${w.phone}` : ''}
+                  <div style={{ fontSize: '12px', color: '#64748b', display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '6px' }}>
+                    <span>{w.role}</span>
+                    {w.phone && (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '3px' }}>
+                        <PhoneIcon size={11} />
+                        <span>{w.phone}</span>
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
               {isActive ? (
                 <span className="badge badge-full">
-                  ✓ પસંદ કરેલ પ્રોફાઇલ
+                  <CheckCircleIcon size={12} />
+                  <span>સક્રિય</span>
                 </span>
               ) : (
                 <button
@@ -138,27 +198,28 @@ export function WorkersView({
                 display: 'grid',
                 gridTemplateColumns: 'repeat(3, 1fr)',
                 background: '#f8faf9',
-                borderRadius: '8px',
-                padding: '8px 10px',
+                border: '1px solid #e4eae6',
+                borderRadius: '10px',
+                padding: '9px 10px',
                 textAlign: 'center',
-                marginBottom: '10px'
+                marginBottom: '12px'
               }}
             >
               <div>
-                <div style={{ fontSize: '10px', color: '#64748b' }}>રોજી દર</div>
-                <div style={{ fontSize: '13px', fontWeight: '700' }}>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>રોજી દર</div>
+                <div style={{ fontSize: '13.5px', fontWeight: '700' }}>
                   {formatCurrency(w.dailyRate)}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: '10px', color: '#64748b' }}>કુલ કમાણી</div>
-                <div style={{ fontSize: '13px', fontWeight: '700', color: '#16a34a' }}>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>કુલ કમાણી</div>
+                <div style={{ fontSize: '13.5px', fontWeight: '700', color: '#15803d' }}>
                   {formatCurrency(earned)}
                 </div>
               </div>
               <div>
-                <div style={{ fontSize: '10px', color: '#64748b' }}>ચોખ્ખી બાકી</div>
-                <div style={{ fontSize: '13px', fontWeight: '700', color: '#0f172a' }}>
+                <div style={{ fontSize: '11px', color: '#64748b' }}>ચોખ્ખી બાકી</div>
+                <div style={{ fontSize: '13.5px', fontWeight: '800', color: '#0f172a' }}>
                   {formatCurrency(net)}
                 </div>
               </div>
@@ -171,7 +232,8 @@ export function WorkersView({
                 className="btn btn-outline btn-sm"
                 onClick={() => handleOpenEdit(w)}
               >
-                ✏️ વિગત બદલો
+                <EditIcon size={14} />
+                <span>વિગત બદલો</span>
               </button>
               <button
                 type="button"
@@ -186,7 +248,8 @@ export function WorkersView({
                   }
                 }}
               >
-                🗑️ ડિલીટ
+                <TrashIcon size={14} />
+                <span>ડિલીટ</span>
               </button>
             </div>
           </div>

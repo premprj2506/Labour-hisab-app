@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import {
   calculateStatement,
   formatCurrency,
@@ -6,6 +6,15 @@ import {
 } from '../utils/calculator';
 import { buildWhatsAppMessage, openWhatsAppChat, shareViaMobile } from '../utils/whatsapp';
 import { PrintStatement } from './PrintStatement';
+import {
+  CalendarIcon,
+  FileBarChartIcon,
+  PhoneIcon,
+  PrinterIcon,
+  ShareIcon,
+  WalletIcon,
+  WhatsAppIcon
+} from './Icons';
 
 export function DateReportView({
   workers,
@@ -14,18 +23,22 @@ export function DateReportView({
   settings,
   onUpdateSettings
 }) {
-  // Date states: defaults to current month
   const defaultRange = getDateRangePreset('THIS_MONTH');
   const [startDate, setStartDate] = useState(defaultRange.start);
   const [endDate, setEndDate] = useState(defaultRange.end);
   const [selectedWorkerId, setSelectedWorkerId] = useState(activeWorkerId || 'ALL');
   const [activePreset, setActivePreset] = useState('THIS_MONTH');
-
-  // Owner phone for WhatsApp
   const [ownerPhone, setOwnerPhone] = useState(settings?.ownerPhone || '');
   const [shareSuccess, setShareSuccess] = useState('');
 
-  // Handle Preset Clicks
+  useEffect(() => {
+    setSelectedWorkerId(activeWorkerId || 'ALL');
+  }, [activeWorkerId]);
+
+  useEffect(() => {
+    setOwnerPhone(settings?.ownerPhone || '');
+  }, [settings?.ownerPhone]);
+
   const handlePreset = (preset) => {
     const range = getDateRangePreset(preset);
     setStartDate(range.start);
@@ -33,10 +46,8 @@ export function DateReportView({
     setActivePreset(preset);
   };
 
-  // Find worker details
   const selectedWorker = workers.find((w) => w.id === selectedWorkerId);
 
-  // Calculate live statement
   const summary = calculateStatement(
     entries,
     selectedWorkerId,
@@ -44,9 +55,7 @@ export function DateReportView({
     endDate
   );
 
-  // Send via WhatsApp
   const handleSendWhatsApp = () => {
-    // Save phone if modified
     if (ownerPhone !== settings?.ownerPhone) {
       onUpdateSettings({ ...settings, ownerPhone });
     }
@@ -64,7 +73,6 @@ export function DateReportView({
     setTimeout(() => setShareSuccess(''), 4000);
   };
 
-  // Native Mobile Share
   const handleMobileShare = async () => {
     const message = buildWhatsAppMessage({
       worker: selectedWorker,
@@ -81,28 +89,30 @@ export function DateReportView({
     }
   };
 
-  // Direct Print / Save as PDF
   const handlePrint = () => {
     window.print();
   };
 
   return (
     <div className="date-report-view">
-      {/* Filter Card (No Print) */}
+      {/* Step 1: Date & Worker Filter Card */}
       <div className="card no-print">
-        <div className="card-title">
-          <span>📅 તારીખ પસંદગી અને હિસાબ</span>
+        <div className="section-header" style={{ marginBottom: '10px' }}>
+          <div className="section-title">
+            <CalendarIcon size={18} />
+            <span>તારીખ પસંદગી અને હિસાબ</span>
+          </div>
         </div>
 
         {/* Worker Selector */}
         <div className="form-group">
-          <label className="form-label">મજૂર પસંદ કરો:</label>
+          <label className="form-label">મજૂર પસંદ કરો</label>
           <select
             className="form-control"
             value={selectedWorkerId}
             onChange={(e) => setSelectedWorkerId(e.target.value)}
           >
-            <option value="ALL">👥 બધા મજૂરો (All Workers)</option>
+            <option value="ALL">બધા મજૂરો (All Workers)</option>
             {workers.map((w) => (
               <option key={w.id} value={w.id}>
                 {w.name} ({w.role} - ₹{w.dailyRate})
@@ -112,9 +122,9 @@ export function DateReportView({
         </div>
 
         {/* Quick Date Presets */}
-        <div className="form-group">
-          <label className="form-label">ઝડપી તારીખ પસંદ કરો:</label>
-          <div className="quick-date-row">
+        <div className="form-group" style={{ marginBottom: '10px' }}>
+          <label className="form-label">ઝડપી સમયગાળો</label>
+          <div className="quick-date-row" style={{ marginBottom: 0 }}>
             <button
               type="button"
               className={`quick-chip ${activePreset === 'THIS_MONTH' ? 'active' : ''}`}
@@ -141,15 +151,15 @@ export function DateReportView({
               className={`quick-chip ${activePreset === 'LAST_MONTH' ? 'active' : ''}`}
               onClick={() => handlePreset('LAST_MONTH')}
             >
-              ગયેલ મહિનો
+              ગયો મહિનો
             </button>
           </div>
         </div>
 
-        {/* Two Date Pickers (From Date & To Date) */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginBottom: '14px' }}>
+        {/* Two Date Pickers */}
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           <div>
-            <label className="form-label">શરૂઆત તારીખ:</label>
+            <label className="form-label">શરૂઆત તારીખ</label>
             <input
               type="date"
               className="form-control"
@@ -161,7 +171,7 @@ export function DateReportView({
             />
           </div>
           <div>
-            <label className="form-label">અંતિમ તારીખ:</label>
+            <label className="form-label">અંતિમ તારીખ</label>
             <input
               type="date"
               className="form-control"
@@ -173,28 +183,70 @@ export function DateReportView({
             />
           </div>
         </div>
+      </div>
 
-        {/* Owner Phone Input for Direct WhatsApp */}
-        <div className="form-group" style={{ marginBottom: '10px' }}>
-          <label className="form-label">માલિકનો વોટ્સએપ નંબર:</label>
-          <input
-            type="tel"
-            className="form-control"
-            value={ownerPhone}
-            onChange={(e) => setOwnerPhone(e.target.value)}
-            placeholder="દા.ત. 9876543210 (નંબર સેવ રહેશે)"
-          />
+      {/* Step 2: Summary Highlight & Direct Share */}
+      <div className="hero-summary-card no-print">
+        <div className="hero-top-row">
+          <div>
+            <div className="hero-label">
+              <WalletIcon size={14} />
+              <span>ચૂકવવાપાત્ર ચોખ્ખી બાકી રકમ</span>
+            </div>
+            <div className="hero-amount">{formatCurrency(summary.netPayable)}</div>
+          </div>
+          <div className="hero-count-pill">
+            {summary.count} એન્ટ્રી
+          </div>
         </div>
 
-        {/* Action Buttons: WhatsApp & Print PDF */}
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px', marginTop: '16px' }}>
+        <div className="hero-stats-row">
+          <div className="hero-stat-box">
+            <div className="hero-stat-label">કુલ મજૂરી કમાણી</div>
+            <div className="hero-stat-val" style={{ color: '#a7f3d0' }}>
+              {formatCurrency(summary.totalEarned)}
+            </div>
+          </div>
+          <div className="hero-stat-box">
+            <div className="hero-stat-label">કુલ ઉપાડ (એડવાન્સ)</div>
+            <div className="hero-stat-val" style={{ color: '#fecaca' }}>
+              {formatCurrency(summary.totalAdvance)}
+            </div>
+          </div>
+        </div>
+
+        <div style={{ fontSize: '11.5px', color: '#cdeadd', marginTop: '10px', textAlign: 'center' }}>
+          પૂરા દિવસ: {summary.fullDays} • અડધા દિવસ: {summary.halfDays} • કામ મુજબ: {summary.customTasksCount}
+        </div>
+      </div>
+
+      {/* Share & Print Actions Card */}
+      <div className="card no-print">
+        <div className="form-group">
+          <label className="form-label">માલિકનો વોટ્સએપ નંબર</label>
+          <div className="input-with-prefix">
+            <span className="input-prefix" style={{ display: 'flex', alignItems: 'center' }}>
+              <PhoneIcon size={14} />
+            </span>
+            <input
+              type="tel"
+              className="form-control"
+              value={ownerPhone}
+              onChange={(e) => setOwnerPhone(e.target.value)}
+              placeholder="દા.ત. 9876543210"
+            />
+          </div>
+        </div>
+
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
           <button
             type="button"
             className="btn btn-whatsapp btn-lg"
             onClick={handleSendWhatsApp}
             style={{ width: '100%' }}
           >
-            <span>💬 વોટ્સએપ કરો</span>
+            <WhatsAppIcon size={19} />
+            <span>વોટ્સએપ કરો</span>
           </button>
           <button
             type="button"
@@ -202,7 +254,8 @@ export function DateReportView({
             onClick={handlePrint}
             style={{ width: '100%' }}
           >
-            <span>🖨️ PDF પ્રિન્ટ</span>
+            <PrinterIcon size={18} />
+            <span>PDF પ્રિન્ટ</span>
           </button>
         </div>
 
@@ -210,51 +263,30 @@ export function DateReportView({
           <button
             type="button"
             className="btn btn-outline btn-block"
-            style={{ marginTop: '8px' }}
+            style={{ marginTop: '10px' }}
             onClick={handleMobileShare}
           >
-            📤 મોબાઇલમાં અન્ય એપમાં શેર કરો
+            <ShareIcon size={16} />
+            <span>મોબાઇલમાં અન્ય એપમાં શેર કરો</span>
           </button>
         )}
 
         {shareSuccess && (
-          <div style={{ marginTop: '10px', color: '#15803d', fontWeight: 'bold', fontSize: '13px', textAlign: 'center' }}>
+          <div style={{ marginTop: '10px', color: '#15803d', fontWeight: '700', fontSize: '13px', textAlign: 'center' }}>
             ✓ {shareSuccess}
           </div>
         )}
       </div>
 
-      {/* Summary Cards */}
-      <div className="summary-grid no-print">
-        <div className="summary-card highlight">
-          <div className="summary-label">ચોખ્ખી ચૂકવવાપાત્ર રકમ (બાકી)</div>
-          <div className="summary-val">{formatCurrency(summary.netPayable)}</div>
-        </div>
-        <div className="summary-card">
-          <div className="summary-label">કુલ મજૂરી કમાણી</div>
-          <div className="summary-val" style={{ color: '#16a34a' }}>
-            {formatCurrency(summary.totalEarned)}
-          </div>
-        </div>
-        <div className="summary-card">
-          <div className="summary-label">કુલ ઉપાડ (એડવાન્સ)</div>
-          <div className="summary-val" style={{ color: '#dc2626' }}>
-            {formatCurrency(summary.totalAdvance)}
-          </div>
-        </div>
-        <div className="summary-card">
-          <div className="summary-label">કુલ દિવસો / એન્ટ્રી</div>
-          <div className="summary-val">{summary.count} એન્ટ્રી</div>
-        </div>
-        <div className="summary-card">
-          <div className="summary-label">કામની વહેંચણી</div>
-          <div style={{ fontSize: '12px', color: '#475569', fontWeight: '600' }}>
-            પૂરા: {summary.fullDays} | અડધા: {summary.halfDays} | ઉચક: {summary.customTasksCount}
-          </div>
+      {/* Step 3: Statement Preview Header */}
+      <div className="preview-card-header no-print">
+        <div className="section-title" style={{ fontSize: '14.5px' }}>
+          <FileBarChartIcon size={17} />
+          <span>હિસાબ સ્લિપ પ્રિવ્યૂ (PDF માટે)</span>
         </div>
       </div>
 
-      {/* Printable Statement (Rendered live and styled for print) */}
+      {/* Printable Statement */}
       <PrintStatement
         worker={selectedWorker}
         settings={settings}

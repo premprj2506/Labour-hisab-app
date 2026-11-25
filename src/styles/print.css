@@ -1,6 +1,5 @@
 /* Print Stylesheet for Gujarati Labour Hisab (PDF Export) */
 @media print {
-  /* Hide interactive web UI */
   .no-print,
   .app-header,
   .bottom-nav,
@@ -8,6 +7,7 @@
   .modal-overlay,
   .quick-date-row,
   .segment-switcher,
+  .toast-banner,
   button,
   .date-picker-controls {
     display: none !important;
@@ -33,26 +33,30 @@
     padding: 0 !important;
   }
 
-  /* Force display of the printable statement container */
   .printable-statement {
     display: block !important;
     width: 100% !important;
-    padding: 15mm 15mm !important;
+    padding: 12mm 14mm !important;
+    border: none !important;
+    margin: 0 !important;
     background: #ffffff !important;
   }
 
-  /* Table styling */
+  .print-table-scroll {
+    overflow: visible !important;
+  }
+
   .print-table {
     width: 100%;
     border-collapse: collapse;
-    margin: 15px 0;
+    margin: 14px 0;
   }
 
   .print-table th,
   .print-table td {
     border: 1px solid #333333;
     padding: 7px 10px;
-    font-size: 11pt;
+    font-size: 10.5pt;
     text-align: left;
   }
 
@@ -75,13 +79,13 @@
 
   .print-header-box {
     border-bottom: 2px solid #000000;
-    padding-bottom: 12px;
-    margin-bottom: 16px;
+    padding-bottom: 10px;
+    margin-bottom: 14px;
     text-align: center;
   }
 
   .print-title {
-    font-size: 20pt;
+    font-size: 19pt;
     font-weight: bold;
     margin-bottom: 4px;
   }
@@ -89,34 +93,19 @@
   .print-meta-grid {
     display: flex;
     justify-content: space-between;
-    margin-bottom: 16px;
-    font-size: 11pt;
+    margin-bottom: 14px;
+    font-size: 10.5pt;
     border: 1px solid #777777;
     padding: 10px;
   }
 
   .print-summary-box {
-    margin-top: 16px;
+    margin-top: 14px;
     border: 1.5px solid #000000;
     padding: 12px;
     background: #fafafa !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
-  }
-
-  .print-signature-row {
-    display: flex;
-    justify-content: space-between;
-    margin-top: 50px;
-    padding: 0 20px;
-  }
-
-  .print-sign-box {
-    border-top: 1px dashed #333333;
-    width: 180px;
-    text-align: center;
-    padding-top: 8px;
-    font-size: 11pt;
   }
 }
 
@@ -124,28 +113,56 @@
 .printable-statement {
   background: #ffffff;
   border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-lg);
   padding: 16px;
-  margin-top: 14px;
+  box-shadow: var(--shadow-xs);
+}
+
+.print-header-box {
+  border-bottom: 1.5px solid var(--border-strong);
+  padding-bottom: 10px;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.print-title {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-main);
+  margin: 2px 0;
+}
+
+.print-meta-grid {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  flex-wrap: wrap;
+  background: var(--surface-muted);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: 10px 12px;
+  font-size: 12.5px;
+  margin-bottom: 12px;
 }
 
 .print-table {
   width: 100%;
+  min-width: 440px;
   border-collapse: collapse;
-  font-size: 13px;
-  margin-top: 10px;
+  font-size: 12.5px;
 }
 
 .print-table th,
 .print-table td {
   border: 1px solid var(--border);
-  padding: 8px 6px;
+  padding: 8px 7px;
 }
 
 .print-table th {
   background: var(--surface-muted);
   font-weight: 700;
   color: var(--text-muted);
+  text-align: left;
 }
 
 .print-table td.text-right,
@@ -156,4 +173,12 @@
 .print-table td.text-center,
 .print-table th.text-center {
   text-align: center;
+}
+
+.print-summary-box {
+  margin-top: 12px;
+  background: var(--surface-muted);
+  border: 1px solid var(--border-strong);
+  border-radius: var(--radius-md);
+  padding: 12px;
 }
